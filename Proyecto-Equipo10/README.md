@@ -39,10 +39,8 @@ El proyecto consiste en un videojuego de tanda de penales inspirado en una final
 ```text
 Proyecto-Equipo10/
 │
-├── juego.py
-├── server.py
-├── client.py
-├── game_logic.py
+├── juegoServer.py
+├── juegoCliente.py
 ├── LICENSE
 └── README.md
 ```
@@ -68,22 +66,16 @@ Proyecto-Equipo10/
 pip install pygame-ce
 ```
 
-## Ejecutar modo local
+## Ejecutar Servidor
 
 ```bash
-python juego.py
+python3 juegoServer.py
 ```
 
-## Ejecutar servidor
+## Ejecutar Cliente
 
 ```bash
-python server.py
-```
-
-## Ejecutar cliente
-
-```bash
-python client.py
+python3 juegoCliente.py
 ```
 
 -----------------------------
@@ -139,6 +131,7 @@ Todos los recursos externos utilizados serán referenciados y acreditados adecua
 ## Librerías utilizadas
 - Python Standard Library
 - socket
+- threading
 - pygame
 
 -----------------------------
@@ -152,4 +145,5 @@ Este proyecto utiliza la licencia MIT.
 #  Estado del Proyecto
 
 🧱🧱🛠️🛠️ 😎En desarrollo😎 🧱🧱🛠️🛠️
-Fase Actual: Programación de la lógica inicial | Semana 3
+Fase Actual: Programación del modo Local y Online LAN | Semana 4
+Próxima Fase: Diseño de interfaz de usuario intuitiva | Semana 5
