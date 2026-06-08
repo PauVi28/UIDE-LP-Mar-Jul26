@@ -1,7 +1,7 @@
 import socket
 from game_logic import seleccionar_limite, generar_numero
 
-HOST = "127.0.0.1"
+HOST = "0.0.0.0"
 PORT = 5555
 
 print("=== CONFIGURACIÓN DEL JUEGO ===")
