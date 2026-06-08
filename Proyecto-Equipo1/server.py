@@ -1,13 +1,7 @@
 import socket
-import threading
+from game_logic import seleccionar_limite, generar_numero
 
-from game_logic import (
-    seleccionar_limite,
-    generar_numero,
-    verificar_numero
-)
-
-HOST = "0.0.0.0"
+HOST = "127.0.0.1"
 PORT = 5555
 
 print("=== CONFIGURACIÓN DEL JUEGO ===")
@@ -18,81 +12,35 @@ print("3. Difícil")
 nivel = int(input("Seleccione nivel: "))
 
 limite = seleccionar_limite(nivel)
-
 numero_secreto = generar_numero(limite)
 
-ganador = False
-
 server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-
 server.bind((HOST, PORT))
+server.listen(1)
 
-server.listen()
-
-print("\nServidor iniciado...")
-print("Esperando jugadores...")
+print("Servidor iniciado...")
 print(f"Número generado entre 1 y {limite}")
 
+conn, addr = server.accept()
+print("Cliente conectado:", addr)
 
-def manejar_cliente(conn, addr):
-
-    global ganador
-
-    print(f"Jugador conectado: {addr}")
-
-    conn.send(f"Juego iniciado del 1 al {limite}".encode())
-
-    while not ganador:
-
-        try:
-
-            data = conn.recv(1024).decode()
-
-            if not data:
-                break
-
-            intento = int(data)
-
-            resultado = verificar_numero(
-                intento,
-                numero_secreto
-            )
-
-            if resultado == "correcto":
-
-                conn.send(
-                    "¡Felicidades! Has ganado.".encode()
-                )
-
-                print(f"Jugador {addr} ganó.")
-
-                ganador = True
-
-            elif resultado == "mayor":
-
-                conn.send(
-                    "El número secreto es mayor.".encode()
-                )
-
-            else:
-
-                conn.send(
-                    "El número secreto es menor.".encode()
-                )
-
-        except:
-            break
-
-    conn.close()
-
+conn.send(f"Adivina el número del 1 al {limite}".encode())
 
 while True:
+    data = conn.recv(1024).decode()
 
-    conn, addr = server.accept()
+    if not data:
+        break
 
-    hilo = threading.Thread(
-        target=manejar_cliente,
-        args=(conn, addr)
-    )
+    intento = int(data)
 
-    hilo.start()
+    if intento == numero_secreto:
+        conn.send("Ganaste!".encode())
+        break
+    elif intento < numero_secreto:
+        conn.send("El número es mayor".encode())
+    else:
+        conn.send("El número es menor".encode())
+
+conn.close()
+server.close()
