@@ -1,7 +1,7 @@
 import socket
 from game_logic import imprimir_tablero, verificar_ganador
 
-HOST = "localhost"
+HOST = "192.168.10.98"
 PORT = 65432
 
 cliente = socket.socket(socket.AF_INET, socket.SOCK_STREAM)

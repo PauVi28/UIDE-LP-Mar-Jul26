@@ -1,7 +1,7 @@
 import socket
 from game_logic import imprimir_tablero, verificar_ganador
 
-HOST = "localhost"
+HOST = "0.0.0.0"
 PORT = 65432
 
 tablero = [" "] * 9
