@@ -1,0 +1,67 @@
+import tkinter as tk
+import random
+ventana = tk.Tk()
+ventana.title("Carreras")
+ventana.geometry("1000x700")  
+inicio = tk.Frame(ventana, bg="gray20")
+inicio.pack(fill="both", expand=True)
+tk.Label(inicio, text="CARRERAS", font=("Arial", 30, "bold"), bg="gray20", fg="white").pack(pady=50)
+tk.Button(inicio, text="Solitario", font=("Arial", 20), command=lambda: juego()).pack(pady=20)
+tk.Button(inicio, text="Multijugador", font=("Arial", 20), command=lambda: juego()).pack(pady=20)
+tk.Button(inicio, text="Salir", font=("Arial", 20), command=ventana.quit).pack(pady=20)
+def juego():
+    for widget in ventana.winfo_children():
+        widget.destroy()
+    lienzo = tk.Canvas(ventana, width=1000, height=700, bg="green")  
+    lienzo.pack()
+    lienzo.create_rectangle(200, 0, 800, 700, fill="gray30") 
+    lienzo.create_line(500, 0, 500, 700, fill="yellow", width=3, dash=(20, 20))  
+    lienzo.create_line(200, 0, 200, 700, fill="white", width=3)  
+    lienzo.create_line(800, 0, 800, 700, fill="white", width=3)  
+    for i in range(0, 700, 100):
+        lienzo.create_rectangle(80, i, 100, i+40, fill="brown")
+        lienzo.create_oval(60, i-20, 120, i+20, fill="darkgreen")
+        lienzo.create_rectangle(900, i, 920, i+40, fill="brown")
+        lienzo.create_oval(880, i-20, 940, i+20, fill="darkgreen")
+    pos = 475  
+    pts = 0
+    auto = lienzo.create_rectangle(pos, 650, pos+50, 690, fill="blue")  
+    etiqueta = tk.Label(ventana, text=f"Pts: {pts}", font=("Arial", 16), bg="black", fg="white")
+    etiqueta.pack()
+    def izquierda(e):
+        nonlocal pos
+        if pos > 210: 
+            pos -= 30
+            lienzo.coords(auto, pos, 650, pos+50, 690)
+    def derecha(e):
+        nonlocal pos
+        if pos < 750: 
+            pos += 30
+            lienzo.coords(auto, pos, 650, pos+50, 690)
+    ventana.bind("<Left>", izquierda)
+    ventana.bind("<Right>", derecha)
+    ventana.focus_set()
+    malos = []
+    def crear_malo():
+        x = random.randint(210, 750) 
+        malos.append(lienzo.create_rectangle(x, 0, x+50, 40, fill="red"))
+        ventana.after(random.randint(800, 1500), crear_malo)
+    def mover():
+        nonlocal pts
+        for m in malos[:]:
+            lienzo.move(m, 0, 10)
+            c = lienzo.coords(m)
+            if c[1] > 700: 
+                lienzo.delete(m)
+                malos.remove(m)
+                pts += 10
+                etiqueta.config(text=f"Pts: {pts}")
+            if abs(c[0] - pos) < 50 and abs(c[1] - 650) < 50:  
+                lienzo.create_text(500, 300, text="FIN", font=("Arial", 40, "bold"), fill="red")
+                tk.Button(ventana, text="Repetir", font=("Arial", 16), command=juego).pack(pady=10)
+                tk.Button(ventana, text="Salir", font=("Arial", 16), command=ventana.quit).pack()
+                return
+        ventana.after(50, mover)
+    crear_malo()
+    mover()
+ventana.mainloop()
