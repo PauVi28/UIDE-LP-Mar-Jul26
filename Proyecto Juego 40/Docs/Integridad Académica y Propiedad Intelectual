@@ -1,0 +1,8 @@
+Se contribuyeron correctamente las librerías utilizadas, como:
+
+Pygame para toda la interfaz gráfica.
+Random para la IA del CPU.
+Socket para el multijugador LAN.
+Pickle para enviar objetos de Python por la red.
+
+Se reicibio también el apoyo de la IA como lo es ChatGPT y Google Gemini
