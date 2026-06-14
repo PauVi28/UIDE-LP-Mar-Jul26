@@ -18,7 +18,6 @@ class VentanaCliente:
         self.consola.pack(pady=10, padx=15)
         self.consola.config(state="disabled")
         
-        # Entrada para los intentos del Cliente
         self.marco_entrada = tk.Frame(self.raiz, bg="#121214")
         self.marco_entrada.pack(pady=10)
         
@@ -79,7 +78,6 @@ class VentanaCliente:
                     self.agregar_texto(f"[VICTORIA] {msg.split(':')[1]}")
                     break
                 
-                # Si llega acá, es un mensaje de estado o cambio de turno
                 if "TURNO:" in msg:
                     self.agregar_texto(msg.split(':')[1])
                 else:
