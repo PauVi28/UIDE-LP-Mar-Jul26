@@ -19,7 +19,6 @@ class VentanaServidor:
         self.consola.pack(pady=10, padx=15)
         self.consola.config(state="disabled")
         
-        # Entrada para los intentos del Servidor
         self.marco_entrada = tk.Frame(self.raiz, bg="#121214")
         self.marco_entrada.pack(pady=10)
         
@@ -34,7 +33,6 @@ class VentanaServidor:
         self.limite_superior = 100
         self.mi_turno = False
         
-        # Vinculamos la tecla Enter para comodidad
         self.entrada_intento.bind("<Return>", lambda event: self.enviar_intento_j1())
 
     def agregar_texto(self, texto):
@@ -56,18 +54,21 @@ class VentanaServidor:
         self.consola.config(state="disabled")
 
     def pedir_inicializacion(self):
-        # Configurar nivel
         self.agregar_texto("=== CONFIGURACIÓN DE LA PARTIDA ===")
-        nivel = simpledialog.askstring("Nivel", "Elige nivel:\n1. Fácil (1-50)\n2. Medio (1-100)\n3. Difícil (1-1000)", parent=self.raiz)
-        if nivel == "1": self.limite_superior = 50
-        elif nivel == "3": self.limite_superior = 1000
-        else: self.limite_superior = 100
+        nivel_str = simpledialog.askstring("Nivel", "Elige nivel:\n1. Fácil (1-50)\n2. Medio (1-100)\n3. Difícil (1-1000)", parent=self.raiz)
         
-        self.numero_secreto = game_logic.generar_numero_secreto(self.limite_superior)
+        try:
+            nivel = int(nivel_str)
+        except (ValueError, TypeError):
+            nivel = 2 # Por defecto medio si meten cualquier cosa
+            
+        # NUEVO: Usamos tus nuevas funciones de game_logic
+        self.limite_superior = game_logic.seleccionar_limite(nivel)
+        self.numero_secreto = game_logic.generar_numero(self.limite_superior)
+        
         self.agregar_texto(f"Rango configurado: 1 a {self.limite_superior}")
         self.agregar_texto("Esperando que el Jugador 2 se conecte por red...")
         
-        # Arrancar el hilo de red para que no congele la ventana
         threading.Thread(target=self.servidor_red, daemon=True).start()
 
     def servidor_red(self):
@@ -78,11 +79,9 @@ class VentanaServidor:
         self.conexion, direccion = servidor.accept()
         self.agregar_texto(f"[OK] Jugador 2 conectado desde: {direccion}")
         
-        # Enviar límite
         self.conexion.sendall(str(self.limite_superior).encode('utf-8'))
         self.activar_mi_turno()
         
-        # Bucle para escuchar las respuestas del Jugador 2 en segundo plano
         while True:
             try:
                 datos = self.conexion.recv(1024).decode('utf-8')
@@ -90,9 +89,11 @@ class VentanaServidor:
                 
                 intento_j2 = int(datos)
                 self.agregar_texto(f"Jugador 2 intentó con: {intento_j2}")
-                res_j2 = game_logic.verificar_intento(intento_j2, self.numero_secreto)
                 
-                if res_j2 == "igual":
+                # NUEVO: Usamos verificar_numero de tu lógica
+                res_j2 = game_logic.verificar_numero(intento_j2, self.numero_secreto)
+                
+                if res_j2 == "correcto":  # Ajustado a tu retorno "correcto"
                     self.agregar_texto("[PERDISTE] El Jugador 2 adivinó el número.")
                     self.conexion.sendall("GANASTE:¡Felicidades! Adivinaste el número secreto.".encode('utf-8'))
                     break
@@ -127,9 +128,11 @@ class VentanaServidor:
         try:
             intento = int(entrada)
             self.agregar_texto(f"Tu intento: {intento}")
-            res = game_logic.verificar_intento(intento, self.numero_secreto)
             
-            if res == "igual":
+            # NUEVO: Usamos verificar_numero de tu lógica
+            res = game_logic.verificar_numero(intento, self.numero_secreto)
+            
+            if res == "correcto":  # Ajustado a tu retorno "correcto"
                 self.agregar_texto("[VICTORIA] ¡Ganaste la partida!")
                 self.conexion.sendall("PERDISTE:El Jugador 1 adivinó el número secreto.".encode('utf-8'))
                 self.desactivar_controles()
