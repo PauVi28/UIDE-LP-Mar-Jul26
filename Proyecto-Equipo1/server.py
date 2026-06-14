@@ -60,9 +60,8 @@ class VentanaServidor:
         try:
             nivel = int(nivel_str)
         except (ValueError, TypeError):
-            nivel = 2 # Por defecto medio si meten cualquier cosa
+            nivel = 2 
             
-        # NUEVO: Usamos tus nuevas funciones de game_logic
         self.limite_superior = game_logic.seleccionar_limite(nivel)
         self.numero_secreto = game_logic.generar_numero(self.limite_superior)
         
@@ -90,10 +89,9 @@ class VentanaServidor:
                 intento_j2 = int(datos)
                 self.agregar_texto(f"Jugador 2 intentó con: {intento_j2}")
                 
-                # NUEVO: Usamos verificar_numero de tu lógica
                 res_j2 = game_logic.verificar_numero(intento_j2, self.numero_secreto)
                 
-                if res_j2 == "correcto":  # Ajustado a tu retorno "correcto"
+                if res_j2 == "correcto":  
                     self.agregar_texto("[PERDISTE] El Jugador 2 adivinó el número.")
                     self.conexion.sendall("GANASTE:¡Felicidades! Adivinaste el número secreto.".encode('utf-8'))
                     break
@@ -129,10 +127,9 @@ class VentanaServidor:
             intento = int(entrada)
             self.agregar_texto(f"Tu intento: {intento}")
             
-            # NUEVO: Usamos verificar_numero de tu lógica
             res = game_logic.verificar_numero(intento, self.numero_secreto)
             
-            if res == "correcto":  # Ajustado a tu retorno "correcto"
+            if res == "correcto":  
                 self.agregar_texto("[VICTORIA] ¡Ganaste la partida!")
                 self.conexion.sendall("PERDISTE:El Jugador 1 adivinó el número secreto.".encode('utf-8'))
                 self.desactivar_controles()
