@@ -1,11 +1,20 @@
-import random
+from logica import reglas40
 
-def jugar_cpu(mano_cpu):
+def jugar_cpu(juego):
+    """Elige una carta para el jugador 2 (la maquina) en modo cpu."""
+    mano = juego.mano_cpu
+    if not mano:
+        return 0
+        
+    mejor_indice = None
+    mejor_cantidad = 0
+    for i, carta in enumerate(mano):
+        capturadas = reglas40.buscar_captura(juego.mesa, carta)
+        if len(capturadas) > mejor_cantidad:
+            mejor_cantidad = len(capturadas)
+            mejor_indice = i
 
-    if len(mano_cpu) > 0:
-
-        indice = random.randint(0, len(mano_cpu) - 1)
-
-        return mano_cpu.pop(indice)
-
-    return None
+    if mejor_indice is not None:
+        return mejor_indice
+        
+    return 0
