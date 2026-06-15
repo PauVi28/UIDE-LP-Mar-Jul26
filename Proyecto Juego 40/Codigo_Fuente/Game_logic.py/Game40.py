@@ -28,7 +28,7 @@ class Game40:
         self.iniciar()
 
     def _mano_rival(self):
-        """La mano del jugador 2 segun el modo."""
+       
         if self.modo == "cpu":
             return self.mano_cpu
         return self.mano_jugador2
@@ -56,7 +56,7 @@ class Game40:
         self.turno = 1
 
     def repartir(self):
-        """Reparte 5 cartas a cada jugador, una por vez, desde el mazo."""
+      
         for _ in range(5):
             if self.mazo:
                 self.mano_jugador.append(self.mazo.pop())
@@ -64,8 +64,7 @@ class Game40:
                 self._mano_rival().append(self.mazo.pop())
 
     def jugar_carta(self, jugador, indice):
-        """Procesa la jugada de un jugador. Solo lo llama el host (o el modo cpu).
-        Aqui se resuelven capturas, caidas, limpias y el cambio de turno."""
+ 
         if self.ganador is not None:
             return
         if jugador != self.turno:
@@ -112,7 +111,7 @@ class Game40:
         self.fin_ronda()
 
     def turno_cpu(self):
-        """En modo cpu hace jugar a la maquina cuando le toca."""
+     
         if self.modo != "cpu":
             return
         if self.turno != 2 or self.ganador is not None:
@@ -121,15 +120,13 @@ class Game40:
         self.jugar_carta(2, indice)
 
     def verificar_reparto(self):
-        """Si los dos se quedaron sin cartas pero aun hay mazo, reparte otra vez.
-        No reinicia puntos ni carton."""
+       
         sin_cartas = len(self.mano_jugador) == 0 and len(self._mano_rival()) == 0
         if sin_cartas and len(self.mazo) > 0:
             self.repartir()
 
     def fin_ronda(self):
-        """Cuando ya no hay mazo ni cartas en las manos, se cierra la ronda:
-        se cuenta el carton, se suman los 6 puntos y se revisa el ganador."""
+
         mazo_vacio = len(self.mazo) == 0
         manos_vacias = len(self.mano_jugador) == 0 and len(self._mano_rival()) == 0
         if not (mazo_vacio and manos_vacias):
@@ -150,7 +147,7 @@ class Game40:
             self.ganador = 2
 
     def nueva_ronda(self):
-        """Arranca otra ronda. Se reinician mazo, mesa y carton, pero NO los puntos."""
+      
         self.mazo = mazo_modulo.crear_mazo()
         self.mesa = []
         self.carton_jugador = []
