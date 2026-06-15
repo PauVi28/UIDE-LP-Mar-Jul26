@@ -1,7 +1,7 @@
 from logica import reglas40
 
 def jugar_cpu(juego):
-    """Elige una carta para el jugador 2 (la maquina) en modo cpu."""
+
     mano = juego.mano_cpu
     if not mano:
         return 0
