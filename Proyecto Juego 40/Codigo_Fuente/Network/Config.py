@@ -1,0 +1,3 @@
+PUERTO = 5050            
+ESCUCHAR_EN = "0.0.0.0"  
+TAMANO_BUFFER = 8192   
