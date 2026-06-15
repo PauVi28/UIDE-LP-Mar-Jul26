@@ -1,23 +1,36 @@
-import random
-
-PALOS = ["oros", "copas", "espadas", "bastos"]
-VALORES = [1, 2, 3, 4, 5, 6, 7, 10, 11, 12]  
-
-
-def crear_mazo():
-    mazo = []
-    for palo in PALOS:
-        for valor in VALORES:
-            carta = {"valor": valor, "palo": palo}
-            mazo.append(carta)
-    random.shuffle(mazo)
-    return mazo
+PUNTOS_CAIDA = 2
+PUNTOS_LIMPIA = 2
+PUNTOS_CARTON = 6
+META = 40          
 
 
-def texto_valor(valor):
-    especiales = {1: "A", 10: "S", 11: "C", 12: "R"}
-    return especiales.get(valor, str(valor))
+def buscar_captura(mesa, carta):
+
+    capturadas = []
+    for c in mesa:
+        if c["valor"] == carta["valor"]:
+            capturadas.append(c)
+    return capturadas
 
 
-def nombre_carta(carta):
-    return texto_valor(carta["valor"]) + " de " + carta["palo"]
+def es_caida(capturadas, ultima_carta, ultimo_jugador, jugador):
+ 
+    if ultima_carta is None:
+        return False
+    if ultimo_jugador == jugador:
+        return False
+    return ultima_carta in capturadas
+
+
+def es_limpia(mesa):
+
+    return len(mesa) == 0
+
+
+def mayor_carton(carton1, carton2):
+ 
+    if len(carton1) > len(carton2):
+        return 1
+    if len(carton2) > len(carton1):
+        return 2
+    return 0
