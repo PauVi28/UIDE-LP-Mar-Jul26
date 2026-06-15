@@ -3,7 +3,6 @@ PUNTOS_LIMPIA = 2
 PUNTOS_CARTON = 6
 META = 40          
 
-
 def buscar_captura(mesa, carta):
 
     capturadas = []
@@ -11,7 +10,6 @@ def buscar_captura(mesa, carta):
         if c["valor"] == carta["valor"]:
             capturadas.append(c)
     return capturadas
-
 
 def es_caida(capturadas, ultima_carta, ultimo_jugador, jugador):
  
@@ -21,11 +19,9 @@ def es_caida(capturadas, ultima_carta, ultimo_jugador, jugador):
         return False
     return ultima_carta in capturadas
 
-
 def es_limpia(mesa):
 
     return len(mesa) == 0
-
 
 def mayor_carton(carton1, carton2):
  
