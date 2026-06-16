@@ -1,17 +1,23 @@
-#CÓDIGO DEL JUEGO SERVER
+#CÓDIGO DEL JUEGO SERVER MUNDIALINHO DE PENALES 2026
+#Grupo 10 [Choez Paco y José Estévez]
 
-import pygame
-import socket
-import threading
-import random
+
+#-------------------------------------------------LIBRERÍAS Y MÓDULOS IMPORTADOS---------------------------------------------------
+
+import pygame #Esencial para correr el juego
+import socket #Encargada de crear las conexiones TCP
+import threading #Permite realizar más de un proceso a la vez y no crashear Pygame
+import random #Utilizada para eventos aleatorios durante el juego
 
 #---------------------------------------------------SERVER INICIADO--------------------------------------------------------
-HOST = "127.0.0.1"
+HOST = "33.33.33.1"
 PORT = 6767
 
 servidor = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 servidor.bind((HOST, PORT))
 servidor.listen()
+
+#--------------------------------------------------------PYGAME---------------------------------------------------------------
 
 pygame.init() #Inicia Pygame
 
@@ -25,10 +31,89 @@ from pygame.locals import( #Importar Controles
     QUIT
 )
 
+#----------------------------------------------------SISTEMA DE SONIDOS------------------------------------------------------
+pygame.mixer.init()
+
+EVENTO_FIN_MUSICA = pygame.USEREVENT + 1
+pygame.mixer.music.set_endevent(EVENTO_FIN_MUSICA)
+
+musicas_fondo = [ #Lista con todas las canciones para el fondo
+    "RecursosSI/Sonidos/Fondo/FreedFromDesire8Bit.wav",
+    "RecursosSI/Sonidos/Fondo/SevenNationArmy8Bit.wav",
+    "RecursosSI/Sonidos/Fondo/WakaWaka8Bit.wav",
+    "RecursosSI/Sonidos/Fondo/WavinFlag8Bit.wav",
+    "RecursosSI/Sonidos/Fondo/WeAreOne8Bit.wav"
+]
+
+musica_ganador = "RecursosSI/Sonidos/Fondo/WeAreTheChampions8Bit.wav"
+random.shuffle(musicas_fondo) #Selecciona una canción de fondo aleatoria
+
+indice_musica = 0 #índice de la lista
+modo_musica = "normal" #Modo durante la partida
+musica_actual = None #Guarda la ubicación de la música actual en la lista
+
+def reproducir_musica_fondo():
+    global indice_musica, musica_actual, modo_musica
+    modo_musica = "normal"
+    ruta = musicas_fondo[indice_musica]
+    pygame.mixer.music.load(ruta)
+    pygame.mixer.music.set_volume(0.2)
+    pygame.mixer.music.play()
+
+    musica_actual = ruta
+    indice_musica += 1
+
+    if indice_musica >= len(musicas_fondo):
+        indice_musica = 0
+        random.shuffle(musicas_fondo)
+
+def reproducir_musica_ganador():
+    global musica_actual, modo_musica
+
+    if modo_musica != "ganador":
+        modo_musica = "ganador"
+
+        pygame.mixer.music.stop()
+        pygame.mixer.music.load(musica_ganador)
+        pygame.mixer.music.set_volume(0.35)
+        pygame.mixer.music.play(-1)
+
+        musica_actual = musica_ganador
+
+def sonido_en_tiempo(tiempo_actual, marca_tiempo, sonido):
+    if marca_tiempo <= tiempo_actual < marca_tiempo + 20:
+        if sonido.get_num_channels() == 0:
+            sonido.play()
+
+sonido_click = pygame.mixer.Sound("RecursosSI/Sonidos/Clicks/Click.wav")
+sonido_click.set_volume(0.4)
+
+sonido_click_decision = pygame.mixer.Sound("RecursosSI/Sonidos/Clicks/Click_decision.wav")
+sonido_click_decision.set_volume(0.15)
+
+sonido_error = pygame.mixer.Sound("RecursosSI/Sonidos/Efectos/Error.wav")
+sonido_error.set_volume(0.6)
+
+sonido_pateo = pygame.mixer.Sound("RecursosSI/Sonidos/Efectos/Pateo.ogg")
+sonido_pateo.set_volume(0.65)
+
+sonido_red = pygame.mixer.Sound("RecursosSI/Sonidos/Efectos/Red.ogg")
+
+sonido_atajada = pygame.mixer.Sound("RecursosSI/Sonidos/Efectos/Atajada.ogg")
+sonido_atajada.set_volume(0.45)
+
+sonido_silbato= pygame.mixer.Sound("RecursosSI/Sonidos/Efectos/Silbato.wav")
+sonido_silbato.set_volume(0.35)
+
+sonido_moneda = pygame.mixer.Sound("RecursosSI/Sonidos/Efectos/Moneda.wav")
+sonido_moneda.set_volume(0.2)
+
+sonido_Hinchada = pygame.mixer.Sound("RecursosSI/Sonidos/Efectos/Hinchada.wav")
+sonido_Hinchada.set_volume(0.30)
+
 #---------------------------------------------------VARIABLES-----------------------------------------------------
 
 RESOLUCION = (1080, 630) #Resolución de la Ventana en Pixeles
-
 
     #Pantalla en Ventana
 pantalla = pygame.display.set_mode(RESOLUCION)
@@ -48,108 +133,72 @@ fuente_3 = pygame.font.Font("RecursosSI/PressStart2P.ttf", 25)
 fuente_4 = pygame.font.Font("RecursosSI/PressStart2P.ttf", 28)
 fuente_5 = pygame.font.Font("RecursosSI/PressStart2P.ttf", 40)
 
-
-    #Fondos e Imágenes
-    #Fondo Escenas
-
-def cargar_fondo(ruta):
-    imagen = pygame.image.load(ruta).convert_alpha()
-    return pygame.transform.scale(imagen, (1080, 630))
-
-fondo_menu = cargar_fondo("RecursosSI/Fondos/fondo_menu_servidor.jpg")
-fondo_seleccion_local = cargar_fondo("RecursosSI/Fondos/fondo_seleccion_local.jpg")
-fondo_seleccion_online = cargar_fondo("RecursosSI/Fondos/fondo_seleccion_online.jpg")
-fondo_volver = cargar_fondo("RecursosSI/Fondos/fondo_volver.png")
-
-fondo_buscando_cliente = cargar_fondo("RecursosSI/Fondos/fondo_buscando_cliente.jpg")
-
-fondo_sorteo = cargar_fondo("RecursosSI/Fondos/fondo_sorteo.jpg")
-
-fondo_vs = cargar_fondo("RecursosSI/Fondos/fondo_vs.jpg")
-
-fondo_arco = cargar_fondo("RecursosSI/Fondos/fondo_arco.jpg")
-fondo_penal = cargar_fondo("RecursosSI/Fondos/fondo_penal.jpg")
-fondo_flechas = cargar_fondo("RecursosSI/Fondos/fondo_flechas.png")
-
-fondo_gol = cargar_fondo("RecursosSI/Fondos/fondo_gol.jpg")
-fondo_atajado = cargar_fondo("RecursosSI/Fondos/fondo_atajada.jpg")
-fondo_atajado_feliz = cargar_fondo("RecursosSI/Fondos/fondo_atajada_feliz.jpg")
-fondo_atajado_triste = cargar_fondo("RecursosSI/Fondos/fondo_atajada_triste.jpg")
-fondo_notapado = cargar_fondo("RecursosSI/Fondos/fondo_no_tapado.jpg")
-
-fondo_tanda_extra = cargar_fondo("RecursosSI/Fondos/fondo_tanda_extra.jpg")
-
-fondo_ganador = cargar_fondo("RecursosSI/Fondos/fondo_ganador.jpg")
-
-    #Mensajes
-def cargar_mensaje(ruta, x, y):
+    #Recursos
+def cargar_recurso(ruta, x, y):
     imagen = pygame.image.load(ruta).convert_alpha()
     return pygame.transform.scale(imagen, (x, y))
 
-mensaje_sorteo = cargar_mensaje("RecursosSI/Mensajes/mensaje_patea_primero.png", 408, 114)
-mensaje_buscando_cliente = cargar_mensaje("RecursosSI/Mensajes/mensaje_buscando_cliente.png", 792, 197)
-mensaje_conectado_desde = cargar_mensaje("RecursosSI/Mensajes/mensaje_conectado_desde.png", 930, 283)
+    #Fondos
+fondo_menu = cargar_recurso("RecursosSI/Fondos/fondo_menu_servidor.jpg", 1080, 630)
+fondo_seleccion_local = cargar_recurso("RecursosSI/Fondos/fondo_seleccion_local.jpg", 1080, 630)
+fondo_seleccion_online = cargar_recurso("RecursosSI/Fondos/fondo_seleccion_online.jpg", 1080, 630)
+fondo_volver = cargar_recurso("RecursosSI/Fondos/fondo_volver.png",1080, 630)
+fondo_buscando_cliente = cargar_recurso("RecursosSI/Fondos/fondo_buscando_cliente.jpg", 1080, 630)
+fondo_sorteo = cargar_recurso("RecursosSI/Fondos/fondo_sorteo.jpg", 1080, 630)
+fondo_vs = cargar_recurso("RecursosSI/Fondos/fondo_vs.jpg", 1080, 630)
+fondo_arco = cargar_recurso("RecursosSI/Fondos/fondo_arco.jpg", 1080, 630)
+fondo_penal = cargar_recurso("RecursosSI/Fondos/fondo_penal.jpg", 1080, 630)
+fondo_flechas = cargar_recurso("RecursosSI/Fondos/fondo_flechas.png", 1080, 630)
+fondo_gol = cargar_recurso("RecursosSI/Fondos/fondo_gol.jpg", 1080, 630)
+fondo_atajado = cargar_recurso("RecursosSI/Fondos/fondo_atajada.jpg", 1080, 630)
+fondo_atajado_feliz = cargar_recurso("RecursosSI/Fondos/fondo_atajada_feliz.jpg", 1080, 630)
+fondo_atajado_triste = cargar_recurso("RecursosSI/Fondos/fondo_atajada_triste.jpg", 1080, 630)
+fondo_notapado = cargar_recurso("RecursosSI/Fondos/fondo_no_tapado.jpg", 1080, 630)
+fondo_tanda_extra = cargar_recurso("RecursosSI/Fondos/fondo_tanda_extra.jpg", 1080, 630)
+fondo_ganador = cargar_recurso("RecursosSI/Fondos/fondo_ganador.jpg", 1080, 630)
 
-mensaje_default = cargar_mensaje("RecursosSI/Mensajes/mensaje_default_server.png", 868, 493)
-mensaje_conexion_perdida = cargar_mensaje("RecursosSI/Mensajes/mensaje_conexión_perdida.png", 773, 471)
+    #Mensajes
+mensaje_sorteo = cargar_recurso("RecursosSI/Mensajes/mensaje_patea_primero.png", 408, 114)
+mensaje_buscando_cliente = cargar_recurso("RecursosSI/Mensajes/mensaje_buscando_cliente.png", 792, 197)
+mensaje_conectado_desde = cargar_recurso("RecursosSI/Mensajes/mensaje_conectado_desde.png", 930, 283)
+mensaje_default = cargar_recurso("RecursosSI/Mensajes/mensaje_default_server.png", 868, 493)
+mensaje_conexion_perdida = cargar_recurso("RecursosSI/Mensajes/mensaje_conexión_perdida.png", 773, 471)
 
-    #Banderas y Nombres
+    #Banderas y Selecciones
+seleccion_ecuador = cargar_recurso("RecursosSI/Selecciones/Elecciones/jugadores_ecuador.png", 254, 265)
+seleccion_argentina = cargar_recurso("RecursosSI/Selecciones/Elecciones/jugadores_argentina.png", 254, 265)
+seleccion_portugal = cargar_recurso("RecursosSI/Selecciones/Elecciones/jugadores_portugal.png", 254, 265)
+seleccion_españa = cargar_recurso("RecursosSI/Selecciones/Elecciones/jugadores_españa.png", 254, 265)
+seleccion_francia = cargar_recurso("RecursosSI/Selecciones/Elecciones/jugadores_francia.png", 254, 265)
+seleccion_brasil = cargar_recurso("RecursosSI/Selecciones/Elecciones/jugadores_brasil.png", 254, 265)
 
-def cargar_bandera(ruta):
-    imagen = pygame.image.load(ruta).convert_alpha()
-    return pygame.transform.scale(imagen, (479, 276))
+band_ecuador_izq = cargar_recurso("RecursosSI/Selecciones/Marcador/ecuador_izq.png", 399, 95)
+band_argentina_izq = cargar_recurso("RecursosSI/Selecciones/Marcador/argentina_izq.png", 399, 95)
+band_portugal_izq = cargar_recurso("RecursosSI/Selecciones/Marcador/portugal_izq.png", 399, 95)
+band_españa_izq = cargar_recurso("RecursosSI/Selecciones/Marcador/españa_izq.png", 399, 95)
+band_francia_izq = cargar_recurso("RecursosSI/Selecciones/Marcador/francia_izq.png", 399, 95)
+band_brasil_izq = cargar_recurso("RecursosSI/Selecciones/Marcador/brasil_izq.png", 399, 95)
 
-def cargar_bandera_vs(ruta):
-    imagen = pygame.image.load(ruta).convert_alpha()
-    return pygame.transform.scale(imagen, (343, 199))
+band_ecuador_der = cargar_recurso("RecursosSI/Selecciones/Marcador/ecuador_der.png", 402, 95)
+band_argentina_der = cargar_recurso("RecursosSI/Selecciones/Marcador/argentina_der.png", 402, 95)
+band_portugal_der = cargar_recurso("RecursosSI/Selecciones/Marcador/portugal_der.png", 402, 95)
+band_españa_der = cargar_recurso("RecursosSI/Selecciones/Marcador/españa_der.png", 402, 95)
+band_francia_der = cargar_recurso("RecursosSI/Selecciones/Marcador/francia_der.png", 402, 95)
+band_brasil_der = cargar_recurso("RecursosSI/Selecciones/Marcador/brasil_der.png", 402, 95)
 
-def cargar_seleccion(ruta):
-    imagen = pygame.image.load(ruta).convert_alpha()
-    return pygame.transform.scale(imagen, (254, 265))
+band_ecuador = cargar_recurso("RecursosSI/Selecciones/Banderas/bandera_ecuador.png", 479, 276)
+band_argentina = cargar_recurso("RecursosSI/Selecciones/Banderas/bandera_argentina.png", 479, 276)
+band_portugal = cargar_recurso("RecursosSI/Selecciones/Banderas/bandera_portugal.png", 479, 276)
+band_españa = cargar_recurso("RecursosSI/Selecciones/Banderas/bandera_españa.png", 479, 276)
+band_francia = cargar_recurso("RecursosSI/Selecciones/Banderas/bandera_francia.png", 479, 276)
+band_brasil = cargar_recurso("RecursosSI/Selecciones/Banderas/bandera_brasil.png", 479, 276)
 
-def cargar_bandera_izq(ruta):
-    imagen = pygame.image.load(ruta).convert_alpha()
-    return pygame.transform.scale(imagen, (399, 95))
-
-def cargar_bandera_der(ruta):
-    imagen = pygame.image.load(ruta).convert_alpha()
-    return pygame.transform.scale(imagen, (402, 95))
-
-
-seleccion_ecuador = cargar_seleccion("RecursosSI/Selecciones/Elecciones/jugadores_ecuador.png")
-seleccion_argentina = cargar_seleccion("RecursosSI/Selecciones/Elecciones/jugadores_argentina.png")
-seleccion_portugal = cargar_seleccion("RecursosSI/Selecciones/Elecciones/jugadores_portugal.png")
-seleccion_españa = cargar_seleccion("RecursosSI/Selecciones/Elecciones/jugadores_españa.png")
-seleccion_francia = cargar_seleccion("RecursosSI/Selecciones/Elecciones/jugadores_francia.png")
-seleccion_brasil = cargar_seleccion("RecursosSI/Selecciones/Elecciones/jugadores_brasil.png")
-
-band_ecuador_izq = cargar_bandera_izq("RecursosSI/Selecciones/Marcador/ecuador_izq.png")
-band_ecuador_der = cargar_bandera_der("RecursosSI/Selecciones/Marcador/ecuador_der.png")
-band_argentina_izq = cargar_bandera_izq("RecursosSI/Selecciones/Marcador/argentina_izq.png")
-band_argentina_der = cargar_bandera_der("RecursosSI/Selecciones/Marcador/argentina_der.png")
-band_portugal_izq = cargar_bandera_izq("RecursosSI/Selecciones/Marcador/portugal_izq.png")
-band_portugal_der = cargar_bandera_der("RecursosSI/Selecciones/Marcador/portugal_der.png")
-band_españa_izq = cargar_bandera_izq("RecursosSI/Selecciones/Marcador/españa_izq.png")
-band_españa_der = cargar_bandera_der("RecursosSI/Selecciones/Marcador/españa_der.png")
-band_francia_izq = cargar_bandera_izq("RecursosSI/Selecciones/Marcador/francia_izq.png")
-band_francia_der = cargar_bandera_der("RecursosSI/Selecciones/Marcador/francia_der.png")
-band_brasil_izq = cargar_bandera_izq("RecursosSI/Selecciones/Marcador/brasil_izq.png")
-band_brasil_der = cargar_bandera_der("RecursosSI/Selecciones/Marcador/brasil_der.png")
-
-band_ecuador = cargar_bandera("RecursosSI/Selecciones/Banderas/bandera_ecuador.png")
-band_argentina = cargar_bandera("RecursosSI/Selecciones/Banderas/bandera_argentina.png")
-band_portugal = cargar_bandera("RecursosSI/Selecciones/Banderas/bandera_portugal.png")
-band_españa = cargar_bandera("RecursosSI/Selecciones/Banderas/bandera_españa.png")
-band_francia = cargar_bandera("RecursosSI/Selecciones/Banderas/bandera_francia.png")
-band_brasil = cargar_bandera("RecursosSI/Selecciones/Banderas/bandera_brasil.png")
-
-band_ecuador_vs = cargar_bandera_vs("RecursosSI/Selecciones/Banderas/bandera_ecuador_vs.png")
-band_argentina_vs = cargar_bandera_vs("RecursosSI/Selecciones/Banderas/bandera_argentina_vs.png")
-band_portugal_vs = cargar_bandera_vs("RecursosSI/Selecciones/Banderas/bandera_portugal_vs.png")
-band_españa_vs = cargar_bandera_vs("RecursosSI/Selecciones/Banderas/bandera_españa_vs.png")
-band_francia_vs = cargar_bandera_vs("RecursosSI/Selecciones/Banderas/bandera_francia_vs.png")
-band_brasil_vs = cargar_bandera_vs("RecursosSI/Selecciones/Banderas/bandera_brasil_vs.png")
-
+band_ecuador_vs = cargar_recurso("RecursosSI/Selecciones/Banderas/bandera_ecuador_vs.png", 343, 199)
+band_argentina_vs = cargar_recurso("RecursosSI/Selecciones/Banderas/bandera_argentina_vs.png", 343, 199)
+band_portugal_vs = cargar_recurso("RecursosSI/Selecciones/Banderas/bandera_portugal_vs.png", 343, 199)
+band_españa_vs = cargar_recurso("RecursosSI/Selecciones/Banderas/bandera_españa_vs.png", 343, 199)
+band_francia_vs = cargar_recurso("RecursosSI/Selecciones/Banderas/bandera_francia_vs.png", 343, 199)
+band_brasil_vs = cargar_recurso("RecursosSI/Selecciones/Banderas/bandera_brasil_vs.png", 343, 199)
 
         #Fotogramas Animación
 def dibujar_fotograma(pantalla, imagen, tiempo_inicio, desde, hasta, x, y):
@@ -178,11 +227,6 @@ def dibujar_secuencia(
             x,
             y
         )
-
-def cargar_fotograma(ruta, x, y):
-    imagen = pygame.image.load(ruta).convert_alpha()
-    return pygame.transform.scale(imagen, (x, y))
-            
 
 tamaños_jugador = [
     (88, 207),
@@ -366,7 +410,7 @@ def cargar_secuencia(carpeta, tamaños):
     for numero, tamaño in enumerate(tamaños, start=1):
         ruta = f"{carpeta}/{numero}.png"
 
-        imagen = cargar_fotograma(
+        imagen = cargar_recurso(
             ruta,
             tamaño[0],
             tamaño[1]
@@ -383,36 +427,25 @@ def cargar_skin_equipo(pais):
     return {
         "jugador": cargar_secuencia(
             f"{carpeta}/Jugadores",
-            tamaños_jugador
-        ),
-
-        "feliz": cargar_fotograma(
+            tamaños_jugador),
+        "feliz": cargar_recurso(
             f"{carpeta}/Jugadores/17_feliz.png",
             114,
-            148
-        ),
-
-        "triste": cargar_fotograma(
+            148),
+        "triste": cargar_recurso(
             f"{carpeta}/Jugadores/17_triste.png",
             114,
-            148
-        ),
-
+            148),
         "arquero": {
             1: cargar_secuencia(
                 f"{carpeta}/Arquero/Izquierda",
-                tamaños_arquero_izq
-            ),
-
+                tamaños_arquero_izq),
             2: cargar_secuencia(
                 f"{carpeta}/Arquero/Medio",
-                tamaños_arquero_med
-            ),
-
+                tamaños_arquero_med),
             3: cargar_secuencia(
                 f"{carpeta}/Arquero/Derecha",
-                tamaños_arquero_der
-            )
+                tamaños_arquero_der)
         }
     }
 
@@ -425,37 +458,33 @@ skins = {
     "Brasil": cargar_skin_equipo("Brasil")
 }
 
-moneda1 = cargar_fotograma("RecursosSI/Animaciones/Moneda/moneda1.png", 122, 80)
-moneda2 = cargar_fotograma("RecursosSI/Animaciones/Moneda/moneda2.png", 119, 92)
-moneda3 = cargar_fotograma("RecursosSI/Animaciones/Moneda/moneda3.png", 108, 101)
-moneda4 = cargar_fotograma("RecursosSI/Animaciones/Moneda/moneda4.png", 116, 124)
-moneda5 = cargar_fotograma("RecursosSI/Animaciones/Moneda/moneda5.png", 128, 129)
-moneda6 = cargar_fotograma("RecursosSI/Animaciones/Moneda/moneda6.png", 117, 121)
-moneda7 = cargar_fotograma("RecursosSI/Animaciones/Moneda/moneda7.png", 114, 88)
-moneda8 = cargar_fotograma("RecursosSI/Animaciones/Moneda/moneda8.png", 121, 67)
-moneda9 = cargar_fotograma("RecursosSI/Animaciones/Moneda/moneda9.png", 121, 48)
-moneda10 = cargar_fotograma("RecursosSI/Animaciones/Moneda/moneda10.png", 121, 66)
-moneda11 = cargar_fotograma("RecursosSI/Animaciones/Moneda/moneda11.png", 115, 87)
-moneda12 = cargar_fotograma("RecursosSI/Animaciones/Moneda/moneda12.png", 123, 114)
-moneda13 = cargar_fotograma("RecursosSI/Animaciones/Moneda/moneda13.png", 133, 127)
-moneda14 = cargar_fotograma("RecursosSI/Animaciones/Moneda/moneda14.png", 122, 93)
-moneda15 = cargar_fotograma("RecursosSI/Animaciones/Moneda/moneda15.png", 113, 46)
+moneda1 = cargar_recurso("RecursosSI/Animaciones/Moneda/moneda1.png", 122, 80)
+moneda2 = cargar_recurso("RecursosSI/Animaciones/Moneda/moneda2.png", 119, 92)
+moneda3 = cargar_recurso("RecursosSI/Animaciones/Moneda/moneda3.png", 108, 101)
+moneda4 = cargar_recurso("RecursosSI/Animaciones/Moneda/moneda4.png", 116, 124)
+moneda5 = cargar_recurso("RecursosSI/Animaciones/Moneda/moneda5.png", 128, 129)
+moneda6 = cargar_recurso("RecursosSI/Animaciones/Moneda/moneda6.png", 117, 121)
+moneda7 = cargar_recurso("RecursosSI/Animaciones/Moneda/moneda7.png", 114, 88)
+moneda8 = cargar_recurso("RecursosSI/Animaciones/Moneda/moneda8.png", 121, 67)
+moneda9 = cargar_recurso("RecursosSI/Animaciones/Moneda/moneda9.png", 121, 48)
+moneda10 = cargar_recurso("RecursosSI/Animaciones/Moneda/moneda10.png", 121, 66)
+moneda11 = cargar_recurso("RecursosSI/Animaciones/Moneda/moneda11.png", 115, 87)
+moneda12 = cargar_recurso("RecursosSI/Animaciones/Moneda/moneda12.png", 123, 114)
+moneda13 = cargar_recurso("RecursosSI/Animaciones/Moneda/moneda13.png", 133, 127)
+moneda14 = cargar_recurso("RecursosSI/Animaciones/Moneda/moneda14.png", 122, 93)
+moneda15 = cargar_recurso("RecursosSI/Animaciones/Moneda/moneda15.png", 113, 46)
 
             
 
             #Balón
-def cargar_balon(ruta):
-    imagen = pygame.image.load(ruta).convert_alpha()
-    return pygame.transform.scale(imagen, (30, 30))
-
-balon1 = cargar_balon("RecursosSI/Animaciones/Balón/1.png")
-balon2 = cargar_balon("RecursosSI/Animaciones/Balón/2.png")
-balon3 = cargar_balon("RecursosSI/Animaciones/Balón/3.png")
-balon4 = cargar_balon("RecursosSI/Animaciones/Balón/4.png")
-balon5 = cargar_balon("RecursosSI/Animaciones/Balón/5.png")
-balon6 = cargar_balon("RecursosSI/Animaciones/Balón/6.png")
-balon7 = cargar_balon("RecursosSI/Animaciones/Balón/7.png")
-balon8 = cargar_balon("RecursosSI/Animaciones/Balón/8.png")
+balon1 = cargar_recurso("RecursosSI/Animaciones/Balón/1.png", 30, 30)
+balon2 = cargar_recurso("RecursosSI/Animaciones/Balón/2.png", 30, 30)
+balon3 = cargar_recurso("RecursosSI/Animaciones/Balón/3.png", 30, 30)
+balon4 = cargar_recurso("RecursosSI/Animaciones/Balón/4.png", 30, 30)
+balon5 = cargar_recurso("RecursosSI/Animaciones/Balón/5.png", 30, 30)
+balon6 = cargar_recurso("RecursosSI/Animaciones/Balón/6.png", 30, 30)
+balon7 = cargar_recurso("RecursosSI/Animaciones/Balón/7.png", 30, 30)
+balon8 = cargar_recurso("RecursosSI/Animaciones/Balón/8.png", 30, 30)
 
         #Bolitas de Resultado
 bolita_verde = pygame.image.load("RecursosSI/Botones/bolita_verde.png").convert_alpha()
@@ -580,11 +609,11 @@ def resolver_penal_online():
 
     if penal_online_resuelto:
         return
-
     if decision_j1 is None or decision_j2 is None:
         return
-
+    
     gol = decision_j1 != decision_j2
+    
     if not modo_tanda_extra:
         if pateador_actual == 1:
             resultado_penales_j1.append(gol)
@@ -740,9 +769,13 @@ boton_confirmado_seleccion2 = cargar_boton_img("RecursosSI/Botones/boton_confirm
 boton_continuar_sorteo = cargar_boton_img("RecursosSI/Botones/boton_continuar_general.png","RecursosSI/Botones/boton_continuar_general_hover.png", 840, 559)
 
 
-boton_izq_arco = cargar_boton_img("RecursosSI/Botones/boton_decision.png","RecursosSI/Botones/boton_decision_hover.png", 198, 159)
-boton_med_arco = cargar_boton_img("RecursosSI/Botones/boton_decision.png","RecursosSI/Botones/boton_decision_hover.png", 433, 159)
-boton_der_arco = cargar_boton_img("RecursosSI/Botones/boton_decision.png","RecursosSI/Botones/boton_decision_hover.png", 667, 159)
+boton_izq_arco_patear = cargar_boton_img("RecursosSI/Botones/boton_decision.png","RecursosSI/Botones/boton_decision_patear_hover.png", 198, 159)
+boton_med_arco_patear = cargar_boton_img("RecursosSI/Botones/boton_decision.png","RecursosSI/Botones/boton_decision_patear_hover.png", 433, 159)
+boton_der_arco_patear = cargar_boton_img("RecursosSI/Botones/boton_decision.png","RecursosSI/Botones/boton_decision_patear_hover.png", 667, 159)
+
+boton_izq_arco_tapar = cargar_boton_img("RecursosSI/Botones/boton_decision.png","RecursosSI/Botones/boton_decision_tapar_hover.png", 198, 159)
+boton_med_arco_tapar = cargar_boton_img("RecursosSI/Botones/boton_decision.png","RecursosSI/Botones/boton_decision_tapar_hover.png", 433, 159)
+boton_der_arco_tapar = cargar_boton_img("RecursosSI/Botones/boton_decision.png","RecursosSI/Botones/boton_decision_tapar_hover.png", 667, 159)
 
 def dibujar_boton_img(pantalla, boton, posicion_mouse):
     if boton["rect"].collidepoint(posicion_mouse):
@@ -753,6 +786,9 @@ def dibujar_boton_img(pantalla, boton, posicion_mouse):
 def cerrar_conexion_online():
     global conectado, buscando_conexión, conexión
     global confirmado_continuar, rival_confirma_continuar, contador_confirmado
+
+    if conectado or buscando_conexión:
+        print("Conexión terminada o perdida, cerrando modo online...")
 
     conectado = False
     buscando_conexión = False
@@ -801,6 +837,7 @@ def esperando_cliente():
                 conexión.sendall(b"CONECTADO|")
                 conectado = True
 
+                print(f"Conectado con el Cliente desde {dirección[0]}.")
             except socket.timeout:
                 pass
 
@@ -845,6 +882,7 @@ def esperando_cliente():
                             pais_j2 = None
                         elif mensaje == "IR_A_SORTEO":
                             escena = "sorteo"
+                            sonido_moneda.play()
                             tiempo_animacion_moneda = pygame.time.get_ticks()
 
                             #Sorteo
@@ -882,6 +920,9 @@ def esperando_cliente():
 
 #--------------------------------------------------------JUEGOS, EVENTOS Y LÓGICA----------------------------------------------------
 juego_abierto = True
+
+reproducir_musica_fondo()
+
 while juego_abierto:
     posicion_mouse = pygame.mouse.get_pos()
 
@@ -889,17 +930,19 @@ while juego_abierto:
 
             
     if escena == "menu_principal":
+        if modo_musica == "ganador":
+            reproducir_musica_fondo()
+        
         modo_local = False
         sorteo_hecho = False
         primer_turno = 0
-        
+
         indice_j1 = 0
         indice_j2 = 0
         confirmacion_j1 = False
         confirmacion_j2 = False
         pais_j1 = None
         pais_j2 = None
-
         mensaje_volver = False
         j1_vuelve = False
         j2_vuelve = False
@@ -935,6 +978,7 @@ while juego_abierto:
     elif escena == "seleccion_equipos":
         if confirmacion_j1 and confirmacion_j2:
             if pais_j1 == pais_j2:
+                sonido_error.play()
                 error_paises_iguales = True
                 selecciones_confirmadas = False
 
@@ -962,6 +1006,10 @@ while juego_abierto:
             #Cerrar el juego
         if evento.type == pygame.QUIT:
             juego_abierto = False
+
+        if evento.type == EVENTO_FIN_MUSICA:
+            if escena != "ganador":
+                reproducir_musica_fondo
 
             #Eventos Tecla
         if evento.type == KEYDOWN:
@@ -1004,7 +1052,7 @@ while juego_abierto:
                 #Botón Volver
             if escena != "menu_principal" and escena != "conectando":
                 if boton_volver_selección["rect"].collidepoint(evento.pos):
-
+                    sonido_click.play()
                     if escena == "ganador":
                         escena = "menu_principal"
 
@@ -1019,6 +1067,7 @@ while juego_abierto:
 
                 if mensaje_volver:
                     if boton_volver_menu["rect"].collidepoint(evento.pos):
+                        sonido_click.play()
                         if not modo_local and conectado:
                             conexión.sendall(b"J1_CONFIRMA_DESCONEXION_PROPOSITO|")
                             cerrar_conexion_online()
@@ -1026,16 +1075,21 @@ while juego_abierto:
                         escena = "menu_principal"
 
                     elif boton_cancelar_volver["rect"].collidepoint(evento.pos):
+                        sonido_click.play()
                         mensaje_volver = False
-                    
 
             #MENU
             if escena == "menu_principal":
                 if boton_local_menu["rect"].collidepoint(evento.pos) and not mensaje_volver:
+                    sonido_click.play()
                     escena = "seleccion_equipos"
                     modo_local = True
 
                 elif boton_online_menu["rect"].collidepoint(evento.pos) and not mensaje_volver:
+                    print("[Modo Online Iniciado]")
+                    print("Jugador 1 [Servidor] Buscando Cliente...")
+
+                    sonido_click.play()
                     cerrar_conexion_online()
                     escena = "conectando"
 
@@ -1048,6 +1102,7 @@ while juego_abierto:
             elif escena == "seleccion_equipos":
                 if modo_local:
                     if boton_confirmar_seleccion1["rect"].collidepoint(evento.pos):
+                        sonido_click_decision.play()
                         if not confirmacion_j1:
                             pais_j1 = paises[indice_j1]
                             confirmacion_j1 = True
@@ -1055,6 +1110,7 @@ while juego_abierto:
                             pais_j1 = None
                             confirmacion_j1 = False
                     elif boton_confirmar_seleccion2["rect"].collidepoint(evento.pos):
+                        sonido_click_decision.play()
                         if not confirmacion_j2:
                             pais_j2 = paises[indice_j2]
                             confirmacion_j2 = True
@@ -1064,11 +1120,14 @@ while juego_abierto:
 
                     if selecciones_confirmadas:
                         if boton_continuar_selección["rect"].collidepoint(evento.pos):
+                            sonido_click.play()
+                            sonido_moneda.play()
                             escena = "sorteo"
                             tiempo_animacion_moneda = pygame.time.get_ticks()
 
                 else:
                     if boton_confirmar_seleccion1["rect"].collidepoint(evento.pos):
+                        sonido_click.play()
                         if not confirmacion_j1:
                             pais_j1 = paises[indice_j1]
                             confirmacion_j1 = True
@@ -1082,6 +1141,7 @@ while juego_abierto:
 
                     if selecciones_confirmadas:
                         if boton_continuar_selección["rect"].collidepoint(evento.pos):
+                            sonido_click.play()
                             escena = "sorteo"
                             if conectado:
                                 conexión.sendall(b"IR_A_SORTEO|")
@@ -1090,6 +1150,7 @@ while juego_abierto:
             #SORTEO
             elif escena == "sorteo":
                 if sorteo_hecho and boton_continuar_sorteo["rect"].collidepoint(evento.pos):
+                    sonido_click.play()
                     escena = "versus"
                     tiempo_vs = pygame.time.get_ticks()
                         
@@ -1100,9 +1161,15 @@ while juego_abierto:
             elif escena == "j1_PATEA":
                 
                 if decision_j1 is None:
-                    if boton_izq_arco["rect"].collidepoint(evento.pos) and not mensaje_volver: decision_j1 = 1
-                    elif boton_med_arco["rect"].collidepoint(evento.pos) and not mensaje_volver: decision_j1 = 2
-                    elif boton_der_arco["rect"].collidepoint(evento.pos) and not mensaje_volver: decision_j1 = 3
+                    if boton_izq_arco_patear["rect"].collidepoint(evento.pos) and not mensaje_volver:
+                        sonido_click_decision.play()
+                        decision_j1 = 1
+                    elif boton_med_arco_patear["rect"].collidepoint(evento.pos) and not mensaje_volver:
+                        sonido_click_decision.play()
+                        decision_j1 = 2
+                    elif boton_der_arco_patear["rect"].collidepoint(evento.pos) and not mensaje_volver:
+                        sonido_click_decision.play()
+                        decision_j1 = 3
 
                 if modo_local and decision_j1 is not None:
                     escena = "j2_TAPA"
@@ -1120,9 +1187,15 @@ while juego_abierto:
                 pateador_actual = 1
                 
                 if decision_j2 is None:
-                    if boton_izq_arco["rect"].collidepoint(evento.pos) and not mensaje_volver: decision_j2 = 1
-                    elif boton_med_arco["rect"].collidepoint(evento.pos) and not mensaje_volver: decision_j2 = 2
-                    elif boton_der_arco["rect"].collidepoint(evento.pos) and not mensaje_volver: decision_j2 = 3
+                    if boton_izq_arco_tapar["rect"].collidepoint(evento.pos) and not mensaje_volver:
+                        sonido_click_decision.play()
+                        decision_j2 = 1
+                    elif boton_med_arco_tapar["rect"].collidepoint(evento.pos) and not mensaje_volver:
+                        sonido_click_decision.play()
+                        decision_j2 = 2
+                    elif boton_der_arco_tapar["rect"].collidepoint(evento.pos) and not mensaje_volver:
+                        sonido_click_decision.play()
+                        decision_j2 = 3
 
                 if modo_local  and decision_j2 is not None:
                     escena = "animacion_penal"
@@ -1148,9 +1221,15 @@ while juego_abierto:
                 pateador_actual = 2
                 
                 if decision_j2 is None:
-                    if boton_izq_arco["rect"].collidepoint(evento.pos) and not mensaje_volver:decision_j2 = 1
-                    elif boton_med_arco["rect"].collidepoint(evento.pos) and not mensaje_volver: decision_j2 = 2
-                    elif boton_der_arco["rect"].collidepoint(evento.pos) and not mensaje_volver:decision_j2 = 3
+                    if boton_izq_arco_patear["rect"].collidepoint(evento.pos) and not mensaje_volver:
+                        sonido_click_decision.play()
+                        decision_j2 = 1
+                    elif boton_med_arco_patear["rect"].collidepoint(evento.pos) and not mensaje_volver:
+                        sonido_click_decision.play()
+                        decision_j2 = 2
+                    elif boton_der_arco_patear["rect"].collidepoint(evento.pos) and not mensaje_volver:
+                        sonido_click_decision.play()
+                        decision_j2 = 3
 
                 if modo_local and decision_j2 is not None:
                     escena = "j1_TAPA"
@@ -1161,9 +1240,15 @@ while juego_abierto:
                 
                 
                 if decision_j1 is None:
-                    if boton_izq_arco["rect"].collidepoint(evento.pos) and not mensaje_volver: decision_j1 = 1
-                    elif boton_med_arco["rect"].collidepoint(evento.pos) and not mensaje_volver: decision_j1 = 2
-                    elif boton_der_arco["rect"].collidepoint(evento.pos) and not mensaje_volver: decision_j1 = 3
+                    if boton_izq_arco_tapar["rect"].collidepoint(evento.pos) and not mensaje_volver:
+                        sonido_click_decision.play()
+                        decision_j1 = 1
+                    elif boton_med_arco_tapar["rect"].collidepoint(evento.pos) and not mensaje_volver:
+                        sonido_click_decision.play()
+                        decision_j1 = 2
+                    elif boton_der_arco_tapar["rect"].collidepoint(evento.pos) and not mensaje_volver:
+                        sonido_click_decision.play()
+                        decision_j1 = 3
 
                 if modo_local and decision_j1 is not None:
                     escena = "animacion_penal"
@@ -1195,15 +1280,13 @@ while juego_abierto:
             #BUSCANDO CONEXIÓN
             elif escena == "conectando":
                 if boton_volver_conexion["rect"].collidepoint(evento.pos):
-                    escena = "menu_principal"
-                    buscando_conexión = False
-                    
+                    sonido_click.play()
 
-                    if conectado and conexión:
-                        conexión.close()
-                    conectado = False
+                    cerrar_conexion_online()
+                    escena = "menu_principal"      
             
                 elif boton_continuar_conexión["rect"].collidepoint(evento.pos):
+                    sonido_click.play()
                     if conectado:
                         if not confirmado_continuar:
                             confirmado_continuar = True
@@ -1214,7 +1297,6 @@ while juego_abierto:
                             
 
 #--------------------------------------------------------------ESCENAS RENDER-------------------------------------------------------------
-    
 #MENÚ
     if escena == "menu_principal":
         pantalla.blit(fondo_menu, (0,0))
@@ -1222,7 +1304,7 @@ while juego_abierto:
         dibujar_boton_img(pantalla, boton_local_menu, posicion_mouse)
         dibujar_boton_img(pantalla, boton_online_menu, posicion_mouse)
 
-
+    
 #BUSCANDO CONEXIÓN
     elif escena == "conectando":
         pantalla.blit(fondo_buscando_cliente, (0,0))
@@ -1234,7 +1316,7 @@ while juego_abierto:
         else:
             pantalla.blit(mensaje_conectado_desde, (70, 150))
             texto = fuente_5.render(f"{dirección[0]}", True, (255, 255, 255))
-            pantalla.blit(texto, (183, 365))
+            pantalla.blit(texto, (330, 365))
 
             if confirmado_continuar:
                 dibujar_boton_img(pantalla, boton_continuar_conexión_si, posicion_mouse)
@@ -1375,9 +1457,9 @@ while juego_abierto:
 
 
         if not decision_j1:
-            dibujar_boton_img(pantalla, boton_izq_arco, posicion_mouse)
-            dibujar_boton_img(pantalla, boton_med_arco, posicion_mouse)
-            dibujar_boton_img(pantalla, boton_der_arco, posicion_mouse)
+            dibujar_boton_img(pantalla, boton_izq_arco_patear, posicion_mouse)
+            dibujar_boton_img(pantalla, boton_med_arco_patear, posicion_mouse)
+            dibujar_boton_img(pantalla, boton_der_arco_patear, posicion_mouse)
 
             pantalla.blit(fondo_flechas, (0, 0))
 
@@ -1394,9 +1476,9 @@ while juego_abierto:
 
         if not decision_j2:
 
-            dibujar_boton_img(pantalla, boton_izq_arco, posicion_mouse)
-            dibujar_boton_img(pantalla, boton_med_arco, posicion_mouse)
-            dibujar_boton_img(pantalla, boton_der_arco, posicion_mouse)
+            dibujar_boton_img(pantalla, boton_izq_arco_patear, posicion_mouse)
+            dibujar_boton_img(pantalla, boton_med_arco_patear, posicion_mouse)
+            dibujar_boton_img(pantalla, boton_der_arco_patear, posicion_mouse)
 
             pantalla.blit(fondo_flechas, (0, 0))
 
@@ -1416,9 +1498,9 @@ while juego_abierto:
                 pantalla.blit(texto, (120, 500))
 
         if not decision_j1:
-            dibujar_boton_img(pantalla, boton_izq_arco, posicion_mouse)
-            dibujar_boton_img(pantalla, boton_med_arco, posicion_mouse)
-            dibujar_boton_img(pantalla, boton_der_arco, posicion_mouse)
+            dibujar_boton_img(pantalla, boton_izq_arco_tapar, posicion_mouse)
+            dibujar_boton_img(pantalla, boton_med_arco_tapar, posicion_mouse)
+            dibujar_boton_img(pantalla, boton_der_arco_tapar, posicion_mouse)
 
             pantalla.blit(fondo_flechas, (0, 0))
 
@@ -1434,9 +1516,9 @@ while juego_abierto:
             pantalla.blit(texto, (200, 500))
 
         if not decision_j2:
-            dibujar_boton_img(pantalla, boton_izq_arco, posicion_mouse)
-            dibujar_boton_img(pantalla, boton_med_arco, posicion_mouse)
-            dibujar_boton_img(pantalla, boton_der_arco, posicion_mouse)
+            dibujar_boton_img(pantalla, boton_izq_arco_tapar, posicion_mouse)
+            dibujar_boton_img(pantalla, boton_med_arco_tapar, posicion_mouse)
+            dibujar_boton_img(pantalla, boton_der_arco_tapar, posicion_mouse)
 
             pantalla.blit(fondo_flechas, (0, 0))
 
@@ -1574,6 +1656,16 @@ while juego_abierto:
 
         tiempo_transcurrido = pygame.time.get_ticks() - tiempo_animacion_penal
 
+        sonido_en_tiempo(tiempo_transcurrido, 0, sonido_silbato)
+        sonido_en_tiempo(tiempo_transcurrido, 850, sonido_pateo)
+        sonido_en_tiempo(tiempo_transcurrido, 1300, sonido_Hinchada)
+
+        if decision_arquero == decision_pateador:
+            sonido_en_tiempo(tiempo_transcurrido, 800, sonido_atajada)
+        else:
+            sonido_en_tiempo(tiempo_transcurrido, 1000, sonido_red)
+
+
         if 1600 < tiempo_transcurrido < 2900:
             if decision_pateador != decision_arquero:
                 pantalla.blit(
@@ -1674,6 +1766,8 @@ while juego_abierto:
         
 #GANADOR
     elif escena == "ganador":
+        reproducir_musica_ganador()
+
         pantalla.blit(fondo_ganador, (0,0))
 
         if ganador == 1:
