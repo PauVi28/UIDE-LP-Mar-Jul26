@@ -151,4 +151,4 @@ Codigo_Fuente/
 
 ## 6. Repositorio
 
-El enlace al repositorio de GitHub está en `enlace_github.txt`.
+El enlace al repositorio de GitHub está en `Enlace_GitHub.txt`.
