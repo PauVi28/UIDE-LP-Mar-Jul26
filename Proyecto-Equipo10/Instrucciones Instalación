@@ -1,0 +1,83 @@
+INSTRUCCIONES DE INSTALACIÓN | Mundialinho de Penales 2026
+
+============================================================
+
+1. REQUISITOS PREVIOS
+   ============================================================
+
+Antes de ejecutar el proyecto, el usuario debe contar con los siguientes elementos instalados en el equipo:
+
+* Python en una versión reciente.
+* Pygame CE, librería necesaria para ejecutar la interfaz gráfica, sonidos, imágenes y animaciones del juego.
+* Visual Studio Code, recomendado para abrir y revisar el proyecto con mayor comodidad.
+* Un sistema operativo compatible con Python y Pygame CE.
+
+============================================================
+2. INSTALACIÓN DEL PROYECTO DESDE EL ARCHIVO ZIP
+================================================
+
+Paso 1:
+Descargar o copiar el archivo "Proyecto_Grupo10.zip".
+
+Paso 2:
+Extraer el contenido del archivo ZIP en una carpeta local del equipo.
+
+Paso 3:
+Ingresar a la carpeta extraída del proyecto.
+
+Paso 4:
+Abrir únicamente la carpeta "Código Fuente" en Visual Studio Code o desde una terminal.
+
+La carpeta "Código Fuente" debe utilizarse como ubicación principal de trabajo, ya que dentro de ella se encuentran los archivos ejecutables del juego y la carpeta "RecursosSI".
+
+La estructura necesaria para ejecutar el videojuego es la siguiente:
+
+Proyecto_Grupo10/
+└── Código Fuente/
+├── juegoServer.py
+├── juegoCliente.py
+└── RecursosSI/
+    ├── Animaciones/
+    ├── Botones/
+    ├── Fondos/
+    ├── Mensajes/
+    ├── Selecciones/
+    ├── Sonidos/
+    └── PressStart2P.ttf
+
+Las demás carpetas del proyecto, como documentación, evidencias o video demostrativo, forman parte del entregable final, pero no son necesarias para iniciar directamente el videojuego.
+
+IMPORTANTE:
+No se deben mover los archivos "juegoServer.py", "juegoCliente.py" ni la carpeta "RecursosSI" fuera de "Código Fuente", ya que esto puede provocar errores al cargar imágenes, sonidos, fuentes, animaciones o botones.
+
+============================================================
+3. INSTALACIÓN DE PYGAME CE
+===========================
+
+Después de abrir la carpeta "Código Fuente", se debe instalar Pygame CE desde la terminal.
+
+Comando principal:
+
+"pip install pygame-ce"
+
+En algunos equipos con Windows, puede ser necesario usar:
+
+"py -m pip install pygame-ce"
+
+Para comprobar que la instalación fue correcta, se puede ejecutar uno de los siguientes comandos:
+
+"python -m pygame --version"
+
+o también:
+
+"py -m pygame --version"
+
+Si la terminal muestra información de Pygame, significa que la librería fue instalada correctamente.
+
+============================================================
+4. RECOMENDACIÓN FINAL
+======================
+
+Una vez extraído el ZIP, abierta la carpeta "Código Fuente" e instalado Pygame CE, el proyecto queda listo para ejecutarse.
+
+Para continuar, se debe revisar el archivo "2. Instrucciones_Ejecución.txt", donde se explica cómo iniciar el modo local y el modo multijugador LAN.
