@@ -1,0 +1,151 @@
+INSTRUCCIONES DE EJECUCIÓN | Mundialinho de Penales 2026
+
+============================================================
+
+1. INICIO DE LA EJECUCIÓN
+   ============================================================
+
+Continuando con la instalación previa, el usuario debe ubicarse dentro de la carpeta "Código Fuente", ya sea desde Visual Studio Code o desde una terminal.
+
+En esta carpeta se encuentran los archivos principales del juego:
+
+* "juegoServer.py"
+* "juegoCliente.py"
+* "RecursosSI"
+
+Desde esta ubicación se puede ejecutar el juego en modo local o en modo multijugador LAN.
+
+============================================================
+2. EJECUCIÓN DEL MODO LOCAL
+===========================
+
+Para jugar en modo local, se puede ejecutar cualquiera de los dos archivos principales desde una terminal ubicada en "Código Fuente".
+
+Comandos recomendados:
+
+"python juegoServer.py"
+
+o también:
+
+"python juegoCliente.py"
+
+En algunos equipos con Windows, se puede usar:
+
+"py juegoServer.py"
+
+o también:
+
+"py juegoCliente.py"
+
+Una vez abierta la ventana del juego, se debe seleccionar la opción de modo local desde el menú principal. En esta modalidad, ambos jugadores participan desde el mismo equipo mediante turnos alternados.
+
+============================================================
+3. EJECUCIÓN DEL MODO MULTIJUGADOR LAN
+======================================
+
+Para ejecutar el modo multijugador LAN, se necesitan dos equipos conectados a una misma red local.
+
+El equipo servidor corresponde al Jugador 1 y debe ejecutar el archivo "juegoServer.py".
+
+El equipo cliente corresponde al Jugador 2 y debe ejecutar el archivo "juegoCliente.py".
+
+Aunque el cliente puede abrirse desde el inicio sin provocar un error grave, se recomienda ejecutar primero el servidor, puesto que este programa queda esperando la conexión del cliente.
+
+============================================================
+4. CONFIGURACIÓN DE LA IP DEL SERVIDOR EN EL CLIENTE
+====================================================
+
+Antes de iniciar el modo multijugador LAN, se debe identificar la dirección IP del equipo que actuará como servidor.
+
+Luego, esa dirección IP debe colocarse en la variable "HOST" del archivo "juegoCliente.py".
+
+Ejemplo:
+
+HOST = "33.33.33.1"
+PORT = 6767
+
+El valor de "PORT" debe mantenerse en "6767", ya que este es el puerto TCP definido para el proyecto.
+
+Para comprobar la dirección IP del equipo servidor, se puede abrir la terminal correspondiente y ejecutar uno de los siguientes comandos:
+
+En Windows:
+
+"ipconfig"
+
+En Linux:
+
+"ifconfig"
+
+Para pruebas en una misma computadora se puede usar:
+
+HOST = "127.0.0.1"
+
+Sin embargo, para ejecutar el juego entre dos equipos reales o virtuales dentro de una red LAN, se debe utilizar la IP real del equipo servidor.
+
+============================================================
+5. COMPROBACIÓN DE CONECTIVIDAD
+===============================
+
+Antes de abrir el juego en modo multijugador, se recomienda comprobar que el cliente pueda comunicarse con el servidor mediante el comando "ping".
+
+Desde el equipo cliente, en la terminal ejecutar:
+
+"ping IP_DEL_SERVIDOR"
+
+Ejemplo:
+
+"ping 33.33.33.1"
+
+Si el ping responde correctamente, significa que existe comunicación entre los equipos.
+
+============================================================
+6. EJECUCIÓN DEL SERVIDOR
+=========================
+
+En el equipo que actuará como servidor, abrir una terminal dentro de "Código Fuente" y ejecutar:
+
+"python juegoServer.py"
+
+En algunos equipos con Windows, también se puede usar:
+
+"py juegoServer.py"
+
+Después de abrir el juego, se debe seleccionar el modo multijugador LAN desde el menú principal para que el servidor quede esperando la conexión del cliente.
+
+============================================================
+7. EJECUCIÓN DEL CLIENTE
+========================
+
+Después de ejecutar el servidor, abrir una terminal en el equipo cliente dentro de "Código Fuente" y ejecutar:
+
+"python juegoCliente.py"
+
+En algunos equipos con Windows, también se puede usar:
+
+"py juegoCliente.py"
+
+Una vez abierto el cliente, se debe seleccionar el modo multijugador LAN desde el menú principal.
+
+Si la IP del servidor y el puerto están configurados correctamente, el cliente podrá conectarse al servidor.
+
+============================================================
+8. RECOMENDACIONES PARA EL MODO MULTIJUGADOR
+============================================
+
+* Ejecutar primero "juegoServer.py" y luego "juegoCliente.py".
+* Verificar que ambos equipos estén conectados a la misma red LAN.
+* Confirmar que el archivo "juegoCliente.py" tenga configurada la IP real del servidor en la variable "HOST".
+* Mantener disponible el puerto "6767".
+* Comprobar la conectividad con "ping" antes de iniciar la partida.
+* No mover la carpeta "RecursosSI" ni los archivos principales fuera de "Código Fuente".
+* En caso de usar firewall, permitir la ejecución de Python en la red local.
+* Si se utilizan máquinas virtuales, configurar ambas en una red interna o en una red que permita comunicación entre ellas.
+* Si se conectan dos equipos físicos mediante cable de red, configurar manualmente las direcciones IPv4 en el adaptador Ethernet de cada equipo.
+
+============================================================
+9. CIERRE DEL JUEGO
+===================
+
+Para cerrar el juego, se puede utilizar la opción de volver al menú cuando esté disponible o cerrar directamente la ventana del programa.
+
+En modo multijugador, si uno de los equipos cierra la ventana o pierde conexión, el otro equipo detectará la interrupción y mostrará el estado correspondiente antes de finalizar la conexión activa o regresar al menú principal.
