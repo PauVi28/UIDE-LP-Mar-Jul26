@@ -1,133 +1,165 @@
-import pygame
+#game_logic.py
 import random
+import pygame
 
 ANCHO, ALTO = 900, 600
 
-class Particula:
-    def __init__(self, x, y, color):
-        self.x = x
-        self.y = y
-        self.color = color
-        self.vx = random.uniform(-1, 1)
-        self.vy = random.uniform(1, 3)
-        self.vida = random.randint(15, 30)
-        self.radio = random.randint(2, 4)
 
-    def actualizar(self):
-        self.x += self.vx
-        self.y += self.vy
-        self.vida -= 1
-        if self.radio > 0.1:
-            self.radio -= 0.05
+#------------------------- PARTÍCULAS -------------------------
 
-    def dibujar(self, superficie):
-        if self.vida > 0 and self.radio > 0:
-            pygame.draw.circle(superficie, self.color, (int(self.x), int(self.y)), int(self.radio))
+def crear_particula(x, y, color):
+    return {
+        'x': x,
+        'y': y,
+        'color': color,
+        'vx': random.uniform(-1, 1),
+        'vy': random.uniform(1, 3),
+        'vida': random.randint(15, 30),
+        'radio': random.randint(2, 4)
+    }
 
-class Obstaculo:
-    def __init__(self, carril):
-        self.carril = carril
-        if carril == 1:
-            self.x = random.randint(183, 396)
-        else:
-            self.x = random.randint(458, 679)
-        self.y = -90
-        self.w, self.h = 44, 80
-        self.color = (random.randint(50, 200), random.randint(50, 200), random.randint(50, 200))
+def actualizar_particula(p):
+    p['x'] += p['vx']
+    p['y'] += p['vy']
+    p['vida'] -= 1
+    if p['radio'] > 0.1:
+        p['radio'] -= 0.05
 
-    def mover(self, velocidad):
-        self.y += velocidad
+def dibujar_particula(p, superficie):
+    if p['vida'] > 0 and p['radio'] > 0:
+        pygame.draw.circle(superficie, p['color'], (int(p['x']), int(p['y'])), int(p['radio']))
 
-    def dibujar(self, superficie):
-        # Llantas antes del cuerpo para que queden por debajo visualmente
-        tire_color = (25, 25, 25)
-        tw, th = 8, 16
-        pygame.draw.rect(superficie, tire_color, (int(self.x) - 5, int(self.y) + 4, tw, th), border_radius=2)
-        pygame.draw.rect(superficie, tire_color, (int(self.x) + self.w - 3, int(self.y) + 4, tw, th), border_radius=2)
-        pygame.draw.rect(superficie, tire_color, (int(self.x) - 5, int(self.y) + self.h - 20, tw, th), border_radius=2)
-        pygame.draw.rect(superficie, tire_color, (int(self.x) + self.w - 3, int(self.y) + self.h - 20, tw, th), border_radius=2)
-        # Cuerpo
-        pygame.draw.rect(superficie, self.color, (int(self.x), int(self.y), self.w, self.h), border_radius=6)
-        pygame.draw.rect(superficie, (200, 230, 255), (int(self.x)+4, int(self.y)+15, self.w-8, 12))
 
-    def fuera(self):
-        return self.y > ALTO
+#------------------------- OBSTÁCULOS -------------------------
 
-    def rect_col(self):
-        return pygame.Rect(self.x, self.y, self.w, self.h)
+def crear_obstaculo(carril):
+    if carril == 1:
+        color = (240, 80, 20)          # naranja
+        color_osc = (180, 40, 0)       # versión más oscura
+    else:
+        color = (60, 80, 220)          # azul
+        color_osc = (30, 40, 150)      # versión más oscura
 
-class Nitro:
-    def __init__(self):
-        self.x = random.randint(185, 670)
-        self.y = -50
-        self.w, self.h = 25, 40
+    # Posición aleatoria dentro del carril correspondiente
+    if carril == 1:
+        x = random.randint(183, 396)
+    else:
+        x = random.randint(458, 679)
 
-    def mover(self, velocidad):
-        self.y += velocidad
+    return {
+        'x': x,
+        'y': -90,
+        'w': 44,               
+        'h': 80,              
+        'color': color,
+        'color_osc': color_osc,
+        'carril': carril,      # conservamos el carril para la puntuación
+        'vivo': True,          # los obstáculos siempre están "vivos" hasta que salen
+        'particulas': [],      # no explotan, pero mantenemos la lista vacía
+        'vel_base': 0,         # no se usa, pero para compatibilidad
+        'vel': 0,
+        'limite_izq': 0,
+        'limite_der': 0
+    }
 
-    def dibujar(self, superficie):
-        pygame.draw.rect(superficie, (100, 200, 255), (int(self.x), int(self.y), self.w, self.h), border_radius=4)
-        pygame.draw.circle(superficie, (255, 220, 0), (int(self.x) + self.w//2, int(self.y) + self.h//2), 6)
+def mover_obstaculo(obs, velocidad):
+    obs['y'] += velocidad
 
-    def fuera(self):
-        return self.y > ALTO
+def fuera_obstaculo(obs):
+    return obs['y'] > ALTO
 
-    def rect_col(self):
-        return pygame.Rect(self.x, self.y, self.w, self.h)
+def rect_obstaculo(obs):
+    return pygame.Rect(obs['x'], obs['y'], obs['w'], obs['h'])
 
-class Carro:
-    def __init__(self, x, y, color, color_osc, limite_izq, limite_der):
-        self.x = x
-        self.y = y
-        self.w, self.h = 46, 84
-        self.color = color
-        self.color_osc = color_osc
-        self.limite_izq = limite_izq
-        self.limite_der = limite_der
-        self.vel = 5
-        self.vivo = True
-        self.particulas = []
 
-    def mover(self, direccion):
-        self.x += direccion * self.vel
-        if self.x < self.limite_izq:
-            self.x = self.limite_izq
-        if self.x + self.w > self.limite_der:
-            self.x = self.limite_der - self.w
+#------------------------- COCHES -----------------------------
 
-    def explotar(self):
-        for _ in range(30):
-            self.particulas.append(Particula(self.x + self.w//2, self.y + self.h//2, (255, random.randint(50, 150), 0)))
+def crear_carro(x, y, color, color_osc, limite_izq, limite_der):
+    return {
+        'x': x,
+        'y': y,
+        'w': 46,
+        'h': 84,
+        'color': color,
+        'color_osc': color_osc,
+        'limite_izq': limite_izq,
+        'limite_der': limite_der,
+        'vel': 5,               # velocidad fija
+        'vivo': True,
+        'particulas': []
+    }
 
-    def actualizar_particulas(self):
-        for p in self.particulas[:]:
-            p.actualizar()
-            if p.vida <= 0:
-                self.particulas.remove(p)
+def mover_carro(carro, direccion):
+    carro['x'] += direccion * carro['vel']
+    if carro['x'] < carro['limite_izq']:
+        carro['x'] = carro['limite_izq']
+    if carro['x'] + carro['w'] > carro['limite_der']:
+        carro['x'] = carro['limite_der'] - carro['w']
 
-    def dibujar(self, superficie):
-        if self.vivo:
-            # LLANTAS primero: quedan por debajo del cuerpo
-            tire_color = (25, 25, 25)
-            tw, th = 9, 18
-            # Delanteras
-            pygame.draw.rect(superficie, tire_color, (int(self.x) - 5, int(self.y) + 5, tw, th), border_radius=2)
-            pygame.draw.rect(superficie, tire_color, (int(self.x) + self.w - 4, int(self.y) + 5, tw, th), border_radius=2)
-            # Traseras
-            pygame.draw.rect(superficie, tire_color, (int(self.x) - 5, int(self.y) + self.h - 23, tw, th), border_radius=2)
-            pygame.draw.rect(superficie, tire_color, (int(self.x) + self.w - 4, int(self.y) + self.h - 23, tw, th), border_radius=2)
-            # Cuerpo principal encima de las llantas
-            pygame.draw.rect(superficie, self.color, (int(self.x), int(self.y), self.w, self.h), border_radius=8)
-            # Techo
-            pygame.draw.rect(superficie, self.color_osc, (int(self.x)+4, int(self.y)+25, self.w-8, 30), border_radius=4)
-            # Parabrisas y luneta trasera
-            pygame.draw.rect(superficie, (200, 235, 255), (int(self.x)+6, int(self.y)+18, self.w-12, 6))
-            pygame.draw.rect(superficie, (200, 235, 255), (int(self.x)+6, int(self.y)+58, self.w-12, 4))
-        else:
-            for p in self.particulas:
-                p.dibujar(superficie)
+def explotar_carro(carro):
+    for _ in range(30):
+        carro['particulas'].append(crear_particula(
+            carro['x'] + carro['w'] // 2,
+            carro['y'] + carro['h'] // 2,
+            (255, random.randint(50, 150), 0)
+        ))
 
-    def rect_col(self):
-        if not self.vivo:
-            return pygame.Rect(-1000, -1000, 0, 0)
-        return pygame.Rect(self.x, self.y, self.w, self.h)
+def actualizar_particulas_carro(carro):
+    for p in carro['particulas'][:]:
+        actualizar_particula(p)
+        if p['vida'] <= 0:
+            carro['particulas'].remove(p)
+
+def dibujar_carro(carro, superficie):
+    if not carro['vivo']:
+        for p in carro['particulas']:
+            dibujar_particula(p, superficie)
+        return
+
+    x, y, w, h = int(carro['x']), int(carro['y']), carro['w'], carro['h']
+    color = carro['color']
+    color_osc = carro['color_osc']
+
+    # Sombra
+    pygame.draw.ellipse(superficie, (10, 10, 10, 100), (x - 2, y + h - 8, w + 4, 16))
+
+    # Llantas
+    llanta_color = (20, 20, 20)
+    llanta_w, llanta_h = 10, 20
+    pygame.draw.rect(superficie, llanta_color, (x - 6, y + h - 24, llanta_w, llanta_h), border_radius=3)
+    pygame.draw.rect(superficie, llanta_color, (x + w - 4, y + h - 24, llanta_w, llanta_h), border_radius=3)
+    pygame.draw.rect(superficie, llanta_color, (x - 6, y + 6, llanta_w, llanta_h), border_radius=3)
+    pygame.draw.rect(superficie, llanta_color, (x + w - 4, y + 6, llanta_w, llanta_h), border_radius=3)
+
+    # Carrocería
+    puntos = [
+        (x + 4, y), (x + w - 4, y), (x + w - 2, y + 10), (x + w, y + 25),
+        (x + w, y + h - 5), (x + w - 2, y + h), (x + 2, y + h), (x, y + h - 5),
+        (x, y + 25), (x + 2, y + 10)
+    ]
+    pygame.draw.polygon(superficie, color, puntos)
+    pygame.draw.polygon(superficie, color_osc, puntos, 2)
+
+    # Techo
+    pygame.draw.polygon(superficie, color_osc, [
+        (x + 6, y + 20), (x + w - 6, y + 20), (x + w - 8, y + 45), (x + 8, y + 45)
+    ])
+    # Ventanas
+    pygame.draw.polygon(superficie, (180, 220, 255), [
+        (x + 8, y + 22), (x + w - 8, y + 22), (x + w - 10, y + 42), (x + 10, y + 42)
+    ])
+
+    # Faros delanteros
+    pygame.draw.circle(superficie, (255, 255, 200), (x + 5, y + 8), 6)
+    pygame.draw.circle(superficie, (255, 255, 200), (x + w - 5, y + 8), 6)
+    # Pilotos traseros
+    pygame.draw.circle(superficie, (255, 60, 60), (x + 6, y + h - 8), 5)
+    pygame.draw.circle(superficie, (255, 60, 60), (x + w - 6, y + h - 8), 5)
+
+    # Spoiler
+    pygame.draw.rect(superficie, (30, 30, 30), (x - 2, y + h - 12, w + 4, 6), border_radius=2)
+
+def rect_carro(carro):
+    if not carro['vivo']:
+        return pygame.Rect(-1000, -1000, 0, 0)
+    return pygame.Rect(carro['x'], carro['y'], carro['w'], carro['h'])
